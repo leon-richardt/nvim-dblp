@@ -1,0 +1,108 @@
+*nvim-dblp.txt*  Query DBLP and insert BibTeX entries via Telescope
+
+==============================================================================
+CONTENTS                                                      *nvim-dblp-toc*
+
+  1. Introduction .................. |nvim-dblp-intro|
+  2. Requirements .................. |nvim-dblp-requirements|
+  3. Setup ......................... |nvim-dblp-setup|
+  4. Commands ...................... |nvim-dblp-commands|
+  5. Mappings ...................... |nvim-dblp-mappings|
+  6. Configuration ................. |nvim-dblp-config|
+
+==============================================================================
+1. INTRODUCTION                                              *nvim-dblp-intro*
+
+nvim-dblp lets you search the DBLP computer-science bibliography from inside
+Neovim.
+
+Workflow:
+  1. Run |:DBLPSearch| with a query string (e.g. `:DBLPSearch vaswani 2017`).
+  2. nvim-dblp makes a single HTTP request to the DBLP API and fetches up to
+     `results_count` matching papers.
+  3. The results open in a Telescope picker.  The prompt does fuzzy filtering
+     over the fetched list — no further network requests are made.
+  4. Press <CR> on an entry to fetch its BibTeX and insert it after the cursor
+     in the current buffer.
+
+==============================================================================
+2. REQUIREMENTS                                       *nvim-dblp-requirements*
+
+  • Neovim 0.8 or later
+  • nvim-lua/plenary.nvim
+  • nvim-telescope/telescope.nvim
+
+==============================================================================
+3. SETUP                                                     *nvim-dblp-setup*
+
+Call `require("dblp").setup(opts)` with an optional table of options before
+using the plugin.  With lazy.nvim: >lua
+
+  {
+    "username/nvim-dblp",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-telescope/telescope.nvim",
+    },
+    opts = {
+      bibtex_format = 1,
+      results_count = 50,
+    },
+  }
+<
+
+==============================================================================
+4. COMMANDS                                               *nvim-dblp-commands*
+
+:DBLPSearch [query]                                             *:DBLPSearch*
+
+  Fetch papers from DBLP and open a Telescope picker.
+
+  With [query]: uses the arguments as the search string directly.
+  Without [query]: opens a centered floating input window in which the query
+  can be entered; the picker opens after pressing <CR>.
+
+  The picker prompt does fuzzy search within the fetched result set.
+  Press <CR> on an entry to fetch its BibTeX and insert it after the cursor.
+
+  Examples: >
+    :DBLPSearch
+    :DBLPSearch attention transformer vaswani
+    :DBLPSearch dijkstra shortest path
+<
+
+==============================================================================
+5. MAPPINGS                                               *nvim-dblp-mappings*
+
+<Plug>(dblp-search)                                    *<Plug>(dblp-search)*
+
+  Normal-mode <Plug> mapping that opens a centered floating input window for
+  the query, then opens the DBLP picker.  No default key is bound; add your
+  own: >lua
+
+    vim.keymap.set("n", "<leader>db", "<Plug>(dblp-search)")
+<
+
+==============================================================================
+6. CONFIGURATION                                            *nvim-dblp-config*
+
+All options are passed to `require("dblp").setup(opts)`.
+
+bibtex_format ~
+  Type: integer  Default: `1`
+  BibTeX format fetched when pressing <CR> in the picker.
+    0  condensed
+    1  standard
+    2  with crossref
+
+results_count ~
+  Type: integer  Default: `50`
+  Maximum number of papers to fetch from DBLP per query.
+
+search_url ~
+  Type: string  Default: `"https://dblp.org/search/publ/api"`
+  URL of the DBLP publication-search API endpoint.  Change this to point at
+  a mirror or an alternative DBLP instance.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
