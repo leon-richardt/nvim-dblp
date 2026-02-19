@@ -6,8 +6,8 @@ https://github.com/user-attachments/assets/519d42ea-0188-4da7-aa3f-2ecc684b82ba
 
 ## ✨ Features
 
-- 🔍 Query DBLP from the command line — pass a query directly or type it in a prompt
-- ⚡️ Results appear in a **Telescope picker** with fuzzy filtering over the fetched list
+- 🔍 Query DBLP from Neovim
+- ⚡️ Select matching results in a **Telescope picker** with fuzzy filtering
 - 📋 Press `<CR>` to fetch and insert the selected entry's **BibTeX**
 - 🌐 Configurable [API](https://dblp.org/faq/How+to+use+the+dblp+search+API.html) endpoint — point at any DBLP mirror or instance
 
@@ -52,7 +52,7 @@ vim.keymap.set("n", "<leader>db", "<Plug>(dblp-search)")
 ### Workflow
 
 1. Run `:DBLPSearch computing machinery and intelligence` (or leave the argument out to be prompted).
-2. A Telescope picker opens, showing a spinner while results are fetched.
+2. A Telescope picker opens with fetched results.
 3. Type to fuzzy-filter within the results; or escape to normal mode and use `j`/`k` to navigate.
 4. Press `<CR>` — the BibTeX entry is fetched and inserted after the cursor.
 
