@@ -54,5 +54,5 @@ end, {
 
 -- <Plug>(dblp-search-doi) – always opens the floating input first.
 vim.keymap.set("n", "<Plug>(dblp-search-doi)", function()
-    with_input("DOI", require("dblp").search_doi)
+    with_input(DOI_SEARCH_TITLE, require("dblp").search_doi)
 end, { desc = DOI_SEARCH_DESC .. " (nvim-dblp)" })
