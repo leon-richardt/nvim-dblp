@@ -16,7 +16,7 @@ CONTENTS                                                      *nvim-dblp-toc*
 nvim-dblp lets you search the DBLP computer-science bibliography from inside
 Neovim.
 
-Workflow:
+Workflow (keyword search):
   1. Run |:DBLPSearch| with a query string (e.g. `:DBLPSearch vaswani 2017`).
   2. nvim-dblp makes a single HTTP request to the DBLP API and fetches up to
      `results_count` matching papers.
@@ -24,6 +24,12 @@ Workflow:
      over the fetched list — no further network requests are made.
   4. Press <CR> on an entry to fetch its BibTeX and insert it after the cursor
      in the current buffer.
+
+Workflow (DOI lookup):
+  1. Run |:DBLPSearchDOI| with a DOI (e.g. `:DBLPSearchDOI 10.1145/3065386`).
+  2. nvim-dblp looks up the DOI on DBLP, fetches the BibTeX, and inserts it
+     after the cursor.  If DBLP has no record for the DOI, a notification is
+     shown.
 
 ==============================================================================
 2. REQUIREMENTS                                       *nvim-dblp-requirements*
@@ -71,6 +77,23 @@ using the plugin.  With lazy.nvim: >lua
     :DBLPSearch dijkstra shortest path
 <
 
+:DBLPSearchDOI [doi]                                       *:DBLPSearchDOI*
+
+  Look up a DOI on DBLP and insert its BibTeX entry after the cursor.
+
+  With [doi]: uses the argument as the DOI directly.
+  Without [doi]: opens a centered floating input window in which the DOI
+  can be entered; the fetch starts after pressing <CR>.
+
+  Because DOIs are unique, no Telescope picker is shown.  If DBLP has no
+  record for the requested DOI, a warning notification is displayed.
+
+  Examples: >
+    :DBLPSearchDOI
+    :DBLPSearchDOI 10.1093/MIND/LIX.236.433
+    :DBLPSearchDOI 10.1145/3065386
+<
+
 ==============================================================================
 5. MAPPINGS                                               *nvim-dblp-mappings*
 
@@ -81,6 +104,15 @@ using the plugin.  With lazy.nvim: >lua
   own: >lua
 
     vim.keymap.set("n", "<leader>db", "<Plug>(dblp-search)")
+<
+
+<Plug>(dblp-search-doi)                            *<Plug>(dblp-search-doi)*
+
+  Normal-mode <Plug> mapping that opens a centered floating input window for
+  a DOI, then fetches and inserts its BibTeX entry.  No default key is bound;
+  add your own: >lua
+
+    vim.keymap.set("n", "<leader>dd", "<Plug>(dblp-search-doi)")
 <
 
 ==============================================================================

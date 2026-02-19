@@ -40,21 +40,32 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 |---|---|
 | `:DBLPSearch {query}` | Search DBLP for `{query}` and open the picker |
 | `:DBLPSearch` | Open a prompt to enter the query, then open the picker |
+| `:DBLPSearchDOI {doi}` | Look up a DOI on DBLP and insert its BibTeX |
+| `:DBLPSearchDOI` | Open a prompt to enter the DOI, then fetch and insert |
 
 ### Mappings
 
-`nvim-dblp` ships a `<Plug>` mapping but does not bind any keys by default:
+`nvim-dblp` ships `<Plug>` mappings but does not bind any keys by default:
 
 ```lua
 vim.keymap.set("n", "<leader>db", "<Plug>(dblp-search)")
+vim.keymap.set("n", "<leader>dd", "<Plug>(dblp-search-doi)")
 ```
 
 ### Workflow
+
+**Search by keywords:**
 
 1. Run `:DBLPSearch computing machinery and intelligence` (or leave the argument out to be prompted).
 2. A Telescope picker opens with fetched results.
 3. Type to fuzzy-filter within the results; or escape to normal mode and use `j`/`k` to navigate.
 4. Press `<CR>` — the BibTeX entry is fetched and inserted after the cursor.
+
+**Search by DOI:**
+
+1. Run `:DBLPSearchDOI 10.1093/MIND/LIX.236.433` (or leave the argument out to be prompted).
+2. The BibTeX entry is fetched from DBLP and inserted after the cursor.
+   If DBLP has no record for the DOI, a notification is shown.
 
 ## ⚙️ Configuration
 

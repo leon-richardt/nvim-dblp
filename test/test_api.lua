@@ -196,5 +196,95 @@ picker_called = false
 dblp.search("override test", { bibtex_format = 2 })
 check("per-call override applied", captured_opts ~= nil and captured_opts.bibtex_format == 2)
 
+-- ── Test: search_doi_async returns a URL for a known DOI ─────────────────────
+print("\n── search_doi_async() ──")
+
+do
+  -- Reload api module in case prior mocks interfered.
+  package.loaded["dblp.api"] = nil
+  local api_doi = require("dblp.api")
+
+  local doi_url = nil
+  local doi_err = "PENDING"
+  net(function()
+    api_doi.search_doi_async("10.1016/J.COMCOM.2025.108156", nil, function(url, err)
+      doi_url = url
+      doi_err = err
+    end)
+  end)
+  local ok = vim.wait(10000, function() return doi_err ~= "PENDING" end, 50)
+  check("doi async completes",           ok)
+  check("doi returns a URL",             type(doi_url) == "string" and doi_url ~= "")
+  check("doi URL contains dblp.org",     doi_url ~= nil and doi_url:find("dblp.org") ~= nil)
+  check("doi has no error",              doi_err == nil)
+  if doi_url then
+    print("   url: " .. doi_url)
+  end
+end
+
+-- ── Test: search_doi_async returns nil for unknown DOI ──────────────────────
+print("\n── search_doi_async() unknown DOI ──")
+
+do
+  package.loaded["dblp.api"] = nil
+  local api_doi = require("dblp.api")
+
+  local doi_url = "PENDING"
+  local doi_err = "PENDING"
+  net(function()
+    api_doi.search_doi_async("10.9999/NONEXISTENT.DOI.999999", nil, function(url, err)
+      doi_url = url
+      doi_err = err
+    end)
+  end)
+  local ok = vim.wait(10000, function() return doi_url ~= "PENDING" end, 50)
+  check("unknown doi async completes",   ok)
+  check("unknown doi returns nil url",   doi_url == nil)
+  check("unknown doi has no error",      doi_err == nil)
+end
+
+-- ── Test: init.search_doi() smoke test (mocked) ────────────────────────────
+print("\n── init.search_doi() smoke test (mocked) ──")
+
+do
+  local doi_searched   = nil
+  local bibtex_fetched = false
+
+  package.loaded["dblp.api"] = {
+    search_doi_async = function(doi, _, callback)
+      doi_searched = doi
+      vim.schedule(function()
+        callback("https://dblp.org/rec/journals/comcom/BrundiersSA25")
+      end)
+    end,
+    fetch_bibtex_async = function(_, _, callback)
+      bibtex_fetched = true
+      vim.schedule(function()
+        callback("@article{test,\n  title={Test},\n}")
+      end)
+    end,
+  }
+  package.loaded["dblp.spinner"] = {
+    new = function()
+      return { start = function() end, stop = function() end }
+    end,
+  }
+
+  package.loaded["dblp"] = nil
+  local dblp_doi = require("dblp")
+  dblp_doi.setup({})
+
+  dblp_doi.search_doi("10.1016/J.COMCOM.2025.108156")
+  vim.wait(2000, function() return bibtex_fetched end, 50)
+
+  check("doi search was called",         doi_searched == "10.1016/J.COMCOM.2025.108156")
+  check("bibtex fetch was called",       bibtex_fetched)
+
+  -- Empty DOI should not trigger search.
+  doi_searched = nil
+  dblp_doi.search_doi("")
+  check("empty doi does not search",     doi_searched == nil)
+end
+
 print("\n── done ──\n")
 vim.cmd("qa!")

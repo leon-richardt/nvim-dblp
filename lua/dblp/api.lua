@@ -137,6 +137,50 @@ function M.fetch_bibtex(url, format)
   return bibtex
 end
 
+--- Parse a DOI search response into a single paper URL (for BibTeX fetching).
+--- Returns (url, nil) on success, (nil, err_string) on failure/no results.
+local function parse_doi_search_response(response)
+  if not response or response.status ~= 200 then
+    return nil, "HTTP " .. tostring(response and response.status or "?") .. " from search API"
+  end
+
+  local ok, data = pcall(vim.json.decode, response.body)
+  if not ok then
+    return nil, "failed to parse JSON response"
+  end
+
+  local hits_obj = vim.tbl_get(data, "result", "hits")
+  if not hits_obj or tonumber(hits_obj["@total"]) == 0 or not hits_obj.hit then
+    return nil, nil -- no results, not an error
+  end
+
+  local hit = ensure_list(hits_obj.hit)[1]
+  local url = hit and hit.info and hit.info.url
+  if not url then
+    return nil, "unexpected response structure"
+  end
+  return url
+end
+
+--- Asynchronous DOI search – fires callback(bibtex_url_or_nil, err_or_nil).
+--- When DBLP has no record for the DOI, both values are nil.
+---@param doi        string
+---@param search_url string|nil
+---@param callback   fun(url: string|nil, err: string|nil)
+function M.search_doi_async(doi, search_url, callback)
+  search_url = search_url or DEFAULT_SEARCH_URL
+
+  local eid = "DOI:" .. doi
+
+  curl.get(search_url, {
+    query    = { eid = eid, h = "1", format = "json" },
+    callback = vim.schedule_wrap(function(response)
+      local url, err = parse_doi_search_response(response)
+      callback(url, err)
+    end),
+  })
+end
+
 --- Asynchronous BibTeX fetch – fires callback(bibtex_or_nil) on the main thread.
 ---@param url      string
 ---@param format   integer
